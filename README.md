@@ -20,4 +20,4 @@ Interactive map on a color scale that changes by year through a slider at the bo
 
 Line chart with scaled markers based on the dataset.
 
-![](Line-Chart-2.png)
+![](LIne-Chart-2.png)
