@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<script type="text/javascript" src="../lib/d3.v5.min.js"></script>
+<style type="text/css">
+/* 13. Basic Styling with CSS */
+
+/* Style the lines by removing the fill and applying a stroke */
+.line {
+    fill: none;
+    stroke-width: 1;
+}
+.bar {
+      fill: #5f89ad;
+}
+.dot {
+}
+
+
+</style>
+<!-- Body tag is where we will append our SVG and SVG objects-->
+<body>
+</body>
+
+<!-- Load in the d3 library -->
+
+<script>
+
+// 2. Use the margin convention practice
+var margin = {top: 60, right: 60, bottom: 60, left: 60}
+  , width = 900 - margin.left - margin.right // Use the window's width
+  , height = 400 - margin.top - margin.bottom; // Use the window's height
+
+d3.csv("state-year-earthquakes.csv")
+  .then(function(data) {
+  var i
+  var years = ["2011", "2012", "2013", "2014", "2015"]
+  var d_midwest = {"2011":[], "2012":[], "2013":[], "2014":[], "2015":[] }
+  var d_northeast = {"2011":[], "2012":[], "2013":[], "2014":[], "2015":[] }
+  var d_west = {"2011":[], "2012":[], "2013":[], "2014":[], "2015":[] }
+  var d_south = {"2011":[], "2012":[], "2013":[], "2014":[], "2015":[] }
+
+  for (i = 0; i < data.length; i++) {
+    if (data[i].region == "Midwest"){
+      d_midwest[data[i].year].push(parseInt(data[i].count))
+    }
+    else if (data[i].region == "Northeast"){
+      d_northeast[data[i].year].push(parseInt(data[i].count))
+    }
+    else if (data[i].region == "West"){
+      d_west[data[i].year].push(parseInt(data[i].count))
+    }
+    else{
+      d_south[data[i].year].push(parseInt(data[i].count))
+    }
+  }
+
+  var arrSum = function(arr){
+    return arr.reduce(function(a,b){
+      return a + b
+    }, 0);
+  }
+
+  var j
+  var maxes = []
+  var d__midwest = [], d__northeast = [], d__west = [], d__south = []
+  for (j=0; j<years.length; j++){
+    d__midwest.push({"x":years[j], "y": arrSum(d_midwest[years[j]]), "z":"Midwest"})
+    d__northeast.push({"x":years[j], "y": arrSum(d_northeast[years[j]]), "z": "Northeast"})
+    d__west.push({"x":years[j], "y": arrSum(d_west[years[j]]), "z": "West"})
+    d__south.push({"x":years[j], "y": arrSum(d_south[years[j]]), "z": "South"})
+    maxes.push(Math.max.apply(null,[arrSum(d_midwest[years[j]]), arrSum(d_northeast[years[j]]),
+    arrSum(d_west[years[j]]), arrSum(d_south[years[j]]),]))
+  }
+
+  var max = Math.max.apply(null, maxes)
+
+////////////////////////
+///Line Chart creation
+
+  var xScale = d3.scalePoint()
+      .domain(years)
+      .range([0, width]);
+
+  var yScale = d3.scaleLinear()
+      .domain([0,max])
+      .range([height, 0]);
+
+  var line = d3.line()
+      .x(function(d) {return xScale(d.x); })
+      .y(function(d) { return yScale(d.y); })
+
+  var Symbols = d3.symbol()
+    .size(50)
+    .type(d3.symbolCircle);
+  var Symbols_2 = d3.symbol()
+    .size(100)
+    .type(d3.symbolCircle);
+
+  var svg1 = d3.select("body").append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  svg1.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(d3.axisBottom(xScale));
+
+  svg1.append("g")
+      .attr("class", "y axis")
+      .call(d3.axisLeft(yScale));
+
+/////////////////////////
+//Markers and lines
+
+  svg1.selectAll(".dot")
+      .data(d__midwest)
+      .enter().append("path")
+      .attr("d",  Symbols)
+      .attr("fill", "green")
+      .attr("transform", function(d) {return "translate(" + xScale(d.x) + "," + yScale(d.y) + ")"; })
+      .on("mouseover", handleMouseOver)
+      .on("mouseout", handleMouseOut);
+  svg1.append("path")
+      .datum(d__midwest)
+      .attr("stroke", 'green')
+      .attr("class", "line")
+      .attr("d", line);
+
+  svg1.selectAll(".dot")
+      .data(d__northeast)
+      .enter().append("path")
+      .attr("d",  Symbols)
+      .attr("fill", "red")
+      .attr("transform", function(d) { return "translate(" + xScale(d.x) + "," + yScale(d.y) + ")"; })
+      .on("mouseover", handleMouseOver)
+      .on("mouseout", handleMouseOut);
+  svg1.append("path")
+      .datum(d__northeast)
+      .attr("stroke", 'red')
+      .attr("class", "line") // Assign a class for styling
+      .attr("d", line);
+
+  svg1.selectAll(".dot")
+      .data(d__west)
+      .enter().append("path")
+      .attr("d",  Symbols)
+      .attr("fill", 'blue')
+      .attr("transform", function(d) { return "translate(" + xScale(d.x) + "," + yScale(d.y) + ")"; })
+      .on("mouseover", handleMouseOver)
+      .on("mouseout", handleMouseOut);
+  svg1.append("path")
+      .datum(d__west)
+      .attr("stroke", 'blue')
+      .attr("class", "line") // Assign a class for styling
+      .attr("d", line);
+
+  svg1.selectAll(".dot")
+      .data(d__south)
+      .enter().append("path")
+      .attr("d",  Symbols)
+      .attr("fill", 'yellow')
+      .attr("transform", function(d) { return "translate(" + xScale(d.x) + "," + yScale(d.y) + ")"; })
+      .on("mouseover", handleMouseOver)
+      .on("mouseout", handleMouseOut);
+  svg1.append("path")
+      .datum(d__south)
+      .attr("stroke", 'yellow')
+      .attr("class", "line") // Assign a class for styling
+      .attr("d", line);
+
+svg1.append("text")
+  .attr("transform", "translate(400,20)")
+  .attr("y", -45)
+  .attr("x",-40 - (height / 2))
+  .text("US Earthquakes by Region 2011-2015")
+  .attr("font-size", "25px")
+  .attr("font-weight", "1000");
+
+svg1.append("text")
+  .attr("transform", "translate(600,50)")
+  .attr("y", -45)
+  .attr("x",-40 - (height / 2))
+  .text("hcornwell3")
+  .attr("font-size", "12px")
+  .attr("font-weight", "700")
+  .attr("fill", "magenta");
+
+
+var lineLegend = svg1.selectAll(".lineLegend").data("s")
+    .enter().append("g")
+    .attr("class","lineLegend")
+    .attr("transform", "translate(" + (width-40) +"," + 60+")");
+lineLegend.append("text").text("Midwest")
+    .attr("transform", "translate(15,9)"); //align texts with boxes
+lineLegend.append("rect")
+    .attr("fill", 'green')
+    .attr("width", 10).attr("height", 10);
+var lineLegend2 = svg1.selectAll(".lineLegend2").data("d")
+    .enter().append("g")
+    .attr("class","lineLegend2")
+    .attr("transform", "translate(" + (width-40) + "," + 80+")");
+lineLegend2.append("text").text("Northeast")
+    .attr("transform", "translate(15,9)"); //align texts with boxes
+lineLegend2.append("rect")
+    .attr("fill", 'red')
+    .attr("width", 10).attr("height", 10);
+var lineLegend3 = svg1.selectAll(".lineLegend3").data("d")
+    .enter().append("g")
+    .attr("class","lineLegend3")
+    .attr("transform", "translate(" + (width-40) + "," + 100+")");
+lineLegend3.append("text").text("West")
+    .attr("transform", "translate(15,9)"); //align texts with boxes
+lineLegend3.append("rect")
+    .attr("fill", 'blue')
+    .attr("width", 10).attr("height", 10);
+var lineLegend4 = svg1.selectAll(".lineLegend4").data("d")
+    .enter().append("g")
+    .attr("class","lineLegend4")
+    .attr("transform", "translate(" + (width-40) + "," + 120+")");
+lineLegend4.append("text").text("South")
+    .attr("transform", "translate(15,9)"); //align texts with boxes
+lineLegend4.append("rect")
+    .attr("fill", 'yellow')
+    .attr("width", 10).attr("height", 10);
+
+
+///////////////////////////////////////////////////
+//////Horizatonal Bar Chart
+//////////////////////////////////////////////////
+
+var dataset = {"Midwest": {"2011":{}, "2012":{}, "2013":{}, "2014":{}, "2015":{}},
+            "Northeast": {"2011":{}, "2012":{}, "2013":{}, "2014":{}, "2015":{}},
+          "West": {"2011":{}, "2012":{}, "2013":{}, "2014":{}, "2015":{}},
+        "South": {"2011":{}, "2012":{}, "2013":{}, "2014":{}, "2015":{}}}
+
+var j
+for (j=0; j<data.length; j++){
+  dataset[data[j].region][data[j].year][data[j].state] = data[j].count
+}
+
+var svg2 = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+function handleMouseOver(d,i){
+    console.log(d)
+    d3.select(this).attr("d", Symbols_2);
+
+    var test = dataset[d.z][d.x]
+    var k
+    var test_test = []
+    for (k=0; k<Object.keys(test).length; k++){
+      test_test.push({"y":Object.keys(test)[k] , "x":parseInt(Object.values(test)[k])})
+    }
+
+    var sorted_test1 = test_test.sort(function(a, b) {
+        return a.x - b.x  ||  b.y - a.y
+      });
+    console.log(sorted_test1)
+    var sorted_test = [{"y":'' , "x":0}]
+
+    var n
+    for (n=0; n<sorted_test1.length; n++){
+      sorted_test.push(sorted_test1[n])
+      console.log(sorted_test1[n])
+    }
+
+    var test_keys = [], test_values = []
+    var m
+    for (m=0; m<sorted_test.length; m++){
+      test_keys.push(sorted_test[m].y)
+      test_values.push(sorted_test[m].x)
+    }
+
+    var xScale_2 = d3.scaleLinear()
+        .domain([0, Math.max.apply(null, test_values)])
+        .range([0, width]);
+
+    var yScale_2 = d3.scalePoint()
+        .domain(test_keys)
+        .range([height,0]);
+
+    svg2.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(40," + height +")")
+        .call(d3.axisBottom(xScale_2));
+
+    svg2.append("g")
+        .attr("class", "y axis")
+        .attr("transform", "translate(40,0)")
+        .call(d3.axisLeft(yScale_2));
+
+    svg2.selectAll(".bar")
+        .data(sorted_test)
+      .enter().append("rect")
+        .attr("class", "bar")
+        .attr("x", 40)
+        .attr("width", function(d) {return xScale_2(d.x) } )
+        .attr("y", function(d){return yScale_2(d.y)-((height-30)/test_keys.length)/2})
+        .attr("height", function(d) {return (height-30)/test_keys.length});
+
+    svg2.append("text")
+      .attr("transform", "translate(500,20)")
+      .attr("y", -45)
+      .attr("x",-40 - (height / 2))
+      .text(d.z + " Region Earthquakes " + d.x)
+      .attr("font-size", "18px")
+      .attr("font-weight", "700");
+
+}
+
+function handleMouseOut(d,i){
+    d3.select(this).attr("d", Symbols);
+
+    svg2.selectAll("*").remove()
+}
+
+
+})
+</script>

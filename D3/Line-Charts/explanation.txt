@@ -1,0 +1,2 @@
+You will want to use non-linear scales when it is difficult to visualize the data as is. Difficulty in visualizing data comes from skewed data (or statistically speaking, heteroscedastic data).
+These scales allow an audience to actually see the lower values in these charts.

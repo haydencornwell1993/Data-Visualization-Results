@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<script type="text/javascript" src="../lib/d3.v5.min.js"></script>
+<style type="text/css">
+body {
+  font: 10px sans-serif;
+}
+
+
+.bar {
+}
+.labels{
+}
+
+
+</style>
+<body>
+<script>
+var margin = {top: 60, right: 120, bottom: 60, left: 60}
+  , width = 900 - margin.left - margin.right // Use the window's width
+  , height = 500 - margin.top - margin.bottom; // Use the window's height
+
+d3.csv("earthquake.csv").then(
+    function(data) {
+
+      //Data creation
+      var j, states = [], years = []
+      for(j=0; j<data.length; j++){
+        if(states.indexOf(data[j].State) === -1) {
+          states.push(data[j].State);
+        }
+        if(years.indexOf(data[j].Year) === -1) {
+          years.push(data[j].Year);
+        }
+      }
+
+      var dataset = {}
+      for(var n=0; n<years.length; n++){
+        dataset[years[n]] = []
+      }
+      for(var m=0; m<years.length; m++){
+        for(var i=0; i<data.length; i++){
+          if(years[m] == data[i].Year){
+            dataset[years[m]].push({"x":data[i].State, "7.0+": data[i]["7.0+"], "6_6.9": data[i]["6_6.9"],
+            "5_5.9": data[i]["5_5.9"] })
+          }
+        }
+      }
+
+      var arrSum = function(arr){
+        return arr.reduce(function(a,b){
+          return a + b
+        }, 0);
+      }
+
+      var k, maxes = []
+      for (var l=0; l<years.length; l++){
+        for(k=0; k<states.length; k++){
+          maxes.push(arrSum([parseInt(dataset[years[l]][k]["7.0+"]), parseInt(dataset[years[l]][k]["6_6.9"]), parseInt(dataset[years[l]][k]["5_5.9"])]))
+        }
+      }
+      var max = Math.max.apply(null, maxes)
+      var maxes_arr = {}
+      var y = 0
+      for (x = 0; x <= maxes.length; x += (maxes.length/years.length)) {
+        Chunk = maxes.slice(x, x+(maxes.length/years.length))
+        maxes_arr[years[y]] = Chunk
+        y += 1
+      }
+
+      //Create drop down//
+      var select = d3.select('body')
+        .append("text")
+          .attr("font-size", "20px")
+          .attr("font-weigth", "600")
+          .text("Select Year: ")
+        .append('select')
+          .attr('class','select')
+          .on('change',onchange)
+
+
+      var options = select
+        .selectAll('option')
+        .data(years).enter()
+        .append('option')
+          .text(function (d) { return d; });
+
+      //Initialize SVG and graph for 2017
+      var svg = d3.select("body").append("svg")
+          .attr("width", width + margin.left + margin.right)
+          .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+          .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+      svg.append("text")
+        .attr("transform", "translate(500,20)")
+        .attr("y", -45)
+        .attr("x",-40 - (height / 2))
+        .text("Visualizing Earthquake Counts by State")
+        .attr("font-size", "18px")
+        .attr("font-weight", "700");
+
+      svg.append("text")
+        .attr("transform", "translate(860,480)")
+        .attr("y", -45)
+        .attr("x",-40 - (height / 2))
+        .text("hcornwell3")
+        .attr("font-size", "12px")
+        .attr("font-weight", "500");
+
+      svg.append("text")
+        .attr("transform", "translate(500,460)")
+        .attr("y", -45)
+        .attr("x",-40 - (height / 2))
+        .text("State")
+        .attr("font-size", "14px")
+        .attr("font-weight", "500");
+
+      svg.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", -45)
+        .attr("x",-40 - (height / 2))
+        .text("Number of Earthquakes")
+        .attr("font-size", "14px")
+        .attr("font-weight", "500");
+
+      var yScale = d3.scaleLinear()
+          .domain([0,max])
+          .range([height,0]);
+
+      var xScale = d3.scaleBand()
+          .domain(states)
+          .range([0, width])
+          .padding(0.1);
+
+      svg.append("g")
+          .attr("class", "x axis")
+          .attr("transform", "translate(0," + (height) + ")")
+          .call(d3.axisBottom(xScale));
+
+      svg.append("g")
+          .attr("class", "y axis")
+          .call(d3.axisLeft(yScale));
+
+      var lineLegend = svg.selectAll(".lineLegend").data("s")
+          .enter().append("g")
+          .attr("class","lineLegend")
+          .attr("transform", "translate(" + (width+40) +"," + 20+")");
+      lineLegend.append("text").text("7.0+")
+          .attr("transform", "translate(15,9)"); //align texts with boxes
+      lineLegend.append("rect")
+          .attr("fill", "#b33040")
+          .attr("width", 10).attr("height", 10);
+      var lineLegend2 = svg.selectAll(".lineLegend2").data("d")
+          .enter().append("g")
+          .attr("class","lineLegend2")
+          .attr("transform", "translate(" + (width+40) + "," + 40+")");
+      lineLegend2.append("text").text("6_6.9")
+          .attr("transform", "translate(15,9)"); //align texts with boxes
+      lineLegend2.append("rect")
+          .attr("fill", "#d25c4d")
+          .attr("width", 10).attr("height", 10);
+      var lineLegend3 = svg.selectAll(".lineLegend3").data("d")
+          .enter().append("g")
+          .attr("class","lineLegend3")
+          .attr("transform", "translate(" + (width+40) + "," + 60+")");
+      lineLegend3.append("text").text("5_5.9")
+          .attr("transform", "translate(15,9)"); //align texts with boxes
+      lineLegend3.append("rect")
+          .attr("fill", "#f2b447")
+          .attr("width", 10).attr("height", 10);
+
+
+      //First data set uses 2017
+      svg.selectAll(".bar")
+          .data(dataset[years[0]])
+        .enter().append("rect")
+          .attr("fill", "#b33040")
+          .attr("x", function(d){return xScale(d.x)})
+          .attr("width", (width/dataset[years[0]].length-5))
+          .attr("y", function(d) {return yScale(d["7.0+"])})
+          .attr("height", function(d) {return (yScale(0) - yScale(d["7.0+"]))})
+
+      svg.selectAll(".bar")
+          .data(dataset[years[0]])
+        .enter().append("rect")
+          .attr("fill", "#d25c4d")
+          .attr("x", function(d){return xScale(d.x)})
+          .attr("width", (width/dataset[years[0]].length-5))
+          .attr("y", function(d) {return yScale(d["6_6.9"])- (yScale(0) - yScale(d["7.0+"]))})
+          .attr("height", function(d) {return (yScale(0) - yScale(d["6_6.9"]))});
+
+      svg.selectAll(".bar")
+          .data(dataset[years[0]])
+        .enter().append("rect")
+          .attr("fill", "#f2b447")
+          .attr("x", function(d){return xScale(d.x)})
+          .attr("width", (width/dataset[years[0]].length-5))
+          .attr("y", function(d) {return yScale(d["5_5.9"])- (yScale(0) - yScale(d["7.0+"])) - (yScale(0) - yScale(d["6_6.9"])) })
+          .attr("height", function(d) {return (yScale(0) - yScale(d["5_5.9"]))});
+
+      svg.selectAll(".labels")
+          .data(maxes_arr[years[0]])
+        .enter().append("text")
+          .attr("class", "labels")
+          .attr("x", function(d,i){return xScale(states[i])+(width/states.length)/2.5} )
+          .attr("y", function(d){return yScale(d)-4})
+          .text(function(d){return d.toString()});
+
+
+      function onchange() {
+        var selectValue
+        selectValue = d3.select('select').property('value')
+        d3.select('body')
+          .append('p')
+
+        svg.selectAll("rect").remove()
+
+        svg.selectAll(".bar")
+            .data(dataset[selectValue])
+          .enter().append("rect")
+            .attr("fill", "#b33040")
+            .attr("x", function(d){return xScale(d.x)})
+            .attr("width", (width/dataset[selectValue].length-5))
+            .attr("y", function(d) {return yScale(d["7.0+"])})
+            .attr("height", function(d) {return (yScale(0) - yScale(d["7.0+"]))});
+
+        svg.selectAll(".bar")
+            .data(dataset[selectValue])
+          .enter().append("rect")
+            .attr("fill", "#d25c4d")
+            .attr("x", function(d){return xScale(d.x)})
+            .attr("width", (width/dataset[selectValue].length-5))
+            .attr("y", function(d) {return yScale(d["6_6.9"])- (yScale(0) - yScale(d["7.0+"]))})
+            .attr("height", function(d) {return (yScale(0) - yScale(d["6_6.9"]))});
+
+        svg.selectAll(".bar")
+            .data(dataset[selectValue])
+          .enter().append("rect")
+            .attr("fill", "#f2b447")
+            .attr("x", function(d){return xScale(d.x)})
+            .attr("width", (width/dataset[selectValue].length-5))
+            .attr("y", function(d) {return yScale(d["5_5.9"])- (yScale(0) - yScale(d["7.0+"])) - (yScale(0) - yScale(d["6_6.9"])) })
+            .attr("height", function(d) {return (yScale(0) - yScale(d["5_5.9"]))});
+
+        svg.selectAll("text.labels").remove()
+        svg.selectAll(".labels")
+            .data(maxes_arr[selectValue])
+          .enter().append("text")
+            .attr("class", "labels")
+            .attr("x", function(d,i){return xScale(states[i])+(width/states.length)/2.5} )
+            .attr("y", function(d){return yScale(d)-4})
+            .text(function(d){return d.toString()});
+
+
+        lineLegend.append("rect")
+            .attr("fill", "#b33040")
+            .attr("width", 10).attr("height", 10);
+        lineLegend2.append("rect")
+            .attr("fill", "#d25c4d")
+            .attr("width", 10).attr("height", 10);
+        lineLegend3.append("rect")
+            .attr("fill", "#f2b447")
+            .attr("width", 10).attr("height", 10);
+
+      };
+  });
+
+</script>

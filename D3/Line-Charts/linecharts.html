@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<script type="text/javascript" src="../lib/d3.v5.min.js"></script>
+<style type="text/css">
+/* 13. Basic Styling with CSS */
+
+/* Style the lines by removing the fill and applying a stroke */
+.line {
+    fill: none;
+    stroke-width: 1;
+}
+
+.overlay {
+  fill: none;
+  pointer-events: all;
+}
+
+.dot {
+}
+  .focus circle {
+  fill: none;
+  stroke: steelblue;
+}
+
+.legend rect {
+  fill:white;
+  stroke:black;
+  opacity:0.8;}
+
+</style>
+<!-- Body tag is where we will append our SVG and SVG objects-->
+<body>
+</body>
+
+<!-- Load in the d3 library -->
+
+<script>
+
+// 2. Use the margin convention practice
+var margin = {top: 60, right: 60, bottom: 60, left: 60}
+  , width = 900 - margin.left - margin.right // Use the window's width
+  , height = 400 - margin.top - margin.bottom; // Use the window's height
+
+d3.csv("earthquakes.csv")
+  .then(function(data) {
+  var i
+  var years = [], eight = [], seven = [], six = [], five = [], est_death = []
+  var d__eight = [], d__seven = [], d__six = [], d__five = []
+  for (i = 0; i < data.length; i++) {
+    years.push(data[i].year)
+    eight.push(parseInt(data[i]["8.0+"]))
+    d__eight.push({"x":data[i].year, "y":parseInt(data[i]["8.0+"]), "z":parseInt(data[i]["Estimated Deaths"])})
+    seven.push(parseInt(data[i]["7_7.9"]))
+    d__seven.push({"x":data[i].year, "y":parseInt(data[i]["7_7.9"]), "z":parseInt(data[i]["Estimated Deaths"])})
+    six.push(parseInt(data[i]["6_6.9"]))
+    d__six.push({"x":data[i].year, "y":parseInt(data[i]["6_6.9"]), "z":parseInt(data[i]["Estimated Deaths"])})
+    five.push(parseInt(data[i]["5_5.9"]))
+    d__five.push({"x":data[i].year, "y":parseInt(data[i]["5_5.9"]), "z":parseInt(data[i]["Estimated Deaths"])})
+  }
+
+
+  var maxes = [Math.max.apply(null,eight), Math.max.apply(null,seven),
+              Math.max.apply(null,six), Math.max.apply(null,five)]
+  var max = Math.max.apply(null, maxes)
+
+
+
+  var d_eight = {"years":years, "quantity":eight};
+  var d_seven = {"years":years, "quantity":seven};
+  var d_six = {"years":years, "quantity":six};
+  var d_five = {"years":years, "quantity":five};
+
+
+  // 5. X scale will use the index of our data
+  var xScale = d3.scalePoint()
+      .domain(years) // input
+      .range([0, width]); // output
+
+  // 6. Y scale will use the randomly generate number
+  var yScale = d3.scaleLinear()
+      .domain([0,max]) // input
+      .range([height, 0]); // output
+
+  // 7. d3's line generator
+  var line = d3.line()
+      .x(function(d) {return xScale(d.x); }) // set the x values for the line generator
+      .y(function(d) { return yScale(d.y); }) // set the y values for the line generator
+      .curve(d3.curveMonotoneX); // apply smoothing to the line
+
+
+  // 1. Add the SVG to the page and employ #2
+  var svg1 = d3.select("body").append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  var svg5 = d3.select("body").append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height*7 + margin.top + margin.bottom)
+    .append("g")
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  // 3. Call the x axis in a group tag
+  svg1.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(d3.axisBottom(xScale)); // Create an axis component with d3.axisBottom
+
+  // 4. Call the y axis in a group tag
+  svg1.append("g")
+      .attr("class", "y axis")
+      .call(d3.axisLeft(yScale)); // Create an axis component with d3.axisLeft
+
+  // 9. Append the path, bind the data, and call the line generator
+
+  svg1.append("path")
+      .datum(d__eight) // 10. Binds data to the line
+      .attr("stroke", '#900C3F')
+      .attr("class", "line") // Assign a class for styling
+      .attr("d", line); // 11. Calls the line generator
+  svg1.append("path")
+      .datum(d__seven)
+      .attr("stroke", '#C70039')
+      .attr("class", "line") // Assign a class for styling
+      .attr("d", line);
+  svg1.append("path")
+      .datum(d__six)
+      .attr("stroke", '#FF5733')
+      .attr("class", "line") // Assign a class for styling
+      .attr("d", line);
+  svg1.append("path")
+      .datum(d__five)
+      .attr("stroke", '#FFC300')
+      .attr("class", "line") // Assign a class for styling
+      .attr("d", line);
+
+  svg1.append("text")
+  .attr("transform",
+            "translate(" + (width/2) + " ," +
+                           (height + 40) + ")")
+      .text("Year");
+
+  svg1.append("text")
+  .attr("transform", "rotate(-90)")
+  .attr("y", -45)
+  .attr("x",-40 - (height / 2))
+  .text("Num of Earthquakes");
+
+  svg1.append("text")
+  .attr("transform", "translate(450,20)")
+  .attr("y", -45)
+  .attr("x",-40 - (height / 2))
+  .text("Earthquake Statistics for 2000-2015")
+  .attr("font-size", "20px")
+  .attr("font-weight", "1000");
+
+
+var lineLegend = svg1.selectAll(".lineLegend").data("s")
+    .enter().append("g")
+    .attr("class","lineLegend")
+    .attr("transform", "translate(" + width + "," + 20+")");
+lineLegend.append("text").text("8.0+")
+    .attr("transform", "translate(15,9)"); //align texts with boxes
+lineLegend.append("rect")
+    .attr("fill", '#900C3F')
+    .attr("width", 10).attr("height", 10);
+var lineLegend2 = svg1.selectAll(".lineLegend2").data("d")
+    .enter().append("g")
+    .attr("class","lineLegend2")
+    .attr("transform", "translate(" + width + "," + 40+")");
+lineLegend2.append("text").text("7_7.9")
+    .attr("transform", "translate(15,9)"); //align texts with boxes
+lineLegend2.append("rect")
+    .attr("fill", '#C70039')
+    .attr("width", 10).attr("height", 10);
+var lineLegend3 = svg1.selectAll(".lineLegend3").data("d")
+    .enter().append("g")
+    .attr("class","lineLegend3")
+    .attr("transform", "translate(" + width + "," + 60+")");
+lineLegend3.append("text").text("6_6.9")
+    .attr("transform", "translate(15,9)"); //align texts with boxes
+lineLegend3.append("rect")
+    .attr("fill", '#FF5733')
+    .attr("width", 10).attr("height", 10);
+var lineLegend4 = svg1.selectAll(".lineLegend4").data("d")
+    .enter().append("g")
+    .attr("class","lineLegend4")
+    .attr("transform", "translate(" + width + "," + 80+")");
+lineLegend4.append("text").text("5_5.9")
+    .attr("transform", "translate(15,9)"); //align texts with boxes
+lineLegend4.append("rect")
+    .attr("fill", '#FFC300')
+    .attr("width", 10).attr("height", 10);
+
+
+///////////////////////////////////////////////////
+//////////////////////////////////////////////////
+
+var svg2 = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+// 3. Call the x axis in a group tag
+svg2.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(d3.axisBottom(xScale)); // Create an axis component with d3.axisBottom
+
+// 4. Call the y axis in a group tag
+svg2.append("g")
+    .attr("class", "y axis")
+    .call(d3.axisLeft(yScale)); // Create an axis component with d3.axisLeft
+
+// 9. Append the path, bind the data, and call the line generator
+
+svg2.append("path")
+    .datum(d__eight) // 10. Binds data to the line
+    .attr("stroke", '#900C3F')
+    .attr("class", "line") // Assign a class for styling
+    .attr("d", line); // 11. Calls the line generator
+svg2.append("path")
+    .datum(d__seven)
+    .attr("stroke", '#C70039')
+    .attr("class", "line") // Assign a class for styling
+    .attr("d", line);
+svg2.append("path")
+    .datum(d__six)
+    .attr("stroke", '#FF5733')
+    .attr("class", "line") // Assign a class for styling
+    .attr("d", line);
+svg2.append("path")
+    .datum(d__five)
+    .attr("stroke", '#FFC300')
+    .attr("class", "line") // Assign a class for styling
+    .attr("d", line);
+
+svg2.append("text")
+.attr("transform",
+          "translate(" + (width/2) + " ," +
+                         (height + 40) + ")")
+    .text("Year");
+svg2.append("text")
+.attr("transform", "rotate(-90)")
+.attr("y", -45)
+.attr("x",-40 - (height / 2))
+.text("Num of Earthquakes");
+
+svg2.append("text")
+.attr("transform", "translate(450,20)")
+.attr("y", -45)
+.attr("x",-40 - (height / 2))
+.text("Earthquake Statistics for 2000-2015 with Symbols")
+.attr("font-size", "20px")
+.attr("font-weight", "1000");
+
+
+var lineLegend_2 = svg2.selectAll(".lineLegend_2").data("s")
+  .enter().append("g")
+  .attr("class","lineLegend_2")
+  .attr("transform", "translate(" + width + "," + 20+")");
+lineLegend_2.append("text").text("8.0+")
+  .attr("transform", "translate(15,9)"); //align texts with boxes
+lineLegend_2.append("rect")
+  .attr("fill", '#900C3F')
+  .attr("width", 10).attr("height", 10);
+var lineLegend_22 = svg2.selectAll(".lineLegend_22").data("d")
+  .enter().append("g")
+  .attr("class","lineLegend_22")
+  .attr("transform", "translate(" + width + "," + 40+")");
+lineLegend_22.append("text").text("7_7.9")
+  .attr("transform", "translate(15,9)"); //align texts with boxes
+lineLegend_22.append("rect")
+  .attr("fill", '#C70039')
+  .attr("width", 10).attr("height", 10);
+var lineLegend_23 = svg2.selectAll(".lineLegend_23").data("d")
+  .enter().append("g")
+  .attr("class","lineLegend_23")
+  .attr("transform", "translate(" + width + "," + 60+")");
+lineLegend_23.append("text").text("6_6.9")
+  .attr("transform", "translate(15,9)"); //align texts with boxes
+lineLegend_23.append("rect")
+  .attr("fill", '#FF5733')
+  .attr("width", 10).attr("height", 10);
+var lineLegend_24 = svg2.selectAll(".lineLegend_24").data("d")
+  .enter().append("g")
+  .attr("class","lineLegend_24")
+  .attr("transform", "translate(" + width + "," + 80+")");
+lineLegend_24.append("text").text("5_5.9")
+  .attr("transform", "translate(15,9)"); //align texts with boxes
+lineLegend_24.append("rect")
+  .attr("fill", '#FFC300')
+  .attr("width", 10).attr("height", 10);
+
+var Symbols_1 = d3.symbol()
+  .size(function(d) {return d.z/1500+30})
+  .type(d3.symbolSquare);
+
+var Symbols_2 = d3.symbol()
+  .size(function(d) {return d.z/1500+30})
+  .type(d3.symbolDiamond);
+
+var Symbols_3 = d3.symbol()
+  .size(function(d) {return d.z/1500+30})
+  .type(d3.symbolTriangle);
+
+var Symbols_4 = d3.symbol()
+  .size(function(d) {return d.z/1500+30})
+  .type(d3.symbolCircle);
+
+svg2.selectAll(".dot")
+        .data(d__eight)
+        .enter().append("path")
+        .attr("class", "point")
+        .attr("d",  Symbols_1)
+        .attr("fill", "#900C3F")
+        .attr("transform", function(d) { return "translate(" + xScale(d.x) + "," + yScale(d.y) + ")"; });
+svg2.selectAll(".dot")
+        .data(d__seven)
+        .enter().append("path")
+        .attr("class", "point")
+        .attr("d",  Symbols_2)
+        .attr("fill", "#C70039")
+        .attr("transform", function(d) { return "translate(" + xScale(d.x) + "," + yScale(d.y) + ")"; });
+svg2.selectAll(".dot")
+        .data(d__six)
+        .enter().append("path")
+        .attr("class", "point")
+        .attr("d", Symbols_3)
+        .attr("fill", "#FF5733")
+        .attr("transform", function(d) { return "translate(" + xScale(d.x) + "," + yScale(d.y) + ")"; });
+svg2.selectAll(".dot")
+        .data(d__five)
+        .enter().append("path")
+        .attr("class", "point")
+        .attr("d", Symbols_4)
+        .attr("fill", "#FFC300")
+        .attr("transform", function(d) { return "translate(" + xScale(d.x) + "," + yScale(d.y) + ")"; });
+
+
+////////////////////////////////////////////
+////////////////////////////////////////////
+//Chart 3
+
+
+var yScale_Pow = d3.scaleSqrt()
+    .domain([0,max]) // input
+    .range([height, 0]); // output
+
+var line_pow = d3.line()
+    .x(function(d) {return xScale(d.x); }) // set the x values for the line generator
+    .y(function(d) { return yScale_Pow(d.y); }) // set the y values for the line generator
+    .curve(d3.curveMonotoneX); // apply smoothing to the line
+
+var svg3 = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+// 3. Call the x axis in a group tag
+svg3.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(d3.axisBottom(xScale)); // Create an axis component with d3.axisBottom
+
+// 4. Call the y axis in a group tag
+svg3.append("g")
+    .attr("class", "y axis")
+    .call(d3.axisLeft(yScale_Pow)); // Create an axis component with d3.axisLeft
+
+// 9. Append the path, bind the data, and call the line generator
+
+svg3.append("path")
+    .datum(d__eight) // 10. Binds data to the line
+    .attr("stroke", '#900C3F')
+    .attr("class", "line") // Assign a class for styling
+    .attr("d", line_pow); // 11. Calls the line generator
+svg3.append("path")
+    .datum(d__seven)
+    .attr("stroke", '#C70039')
+    .attr("class", "line") // Assign a class for styling
+    .attr("d", line_pow);
+svg3.append("path")
+    .datum(d__six)
+    .attr("stroke", '#FF5733')
+    .attr("class", "line") // Assign a class for styling
+    .attr("d", line_pow);
+svg3.append("path")
+    .datum(d__five)
+    .attr("stroke", '#FFC300')
+    .attr("class", "line") // Assign a class for styling
+    .attr("d", line_pow);
+
+svg3.append("text")
+.attr("transform",
+          "translate(" + (width/2) + " ," +
+                         (height + 40) + ")")
+    .text("Year");
+svg3.append("text")
+.attr("transform", "rotate(-90)")
+.attr("y", -45)
+.attr("x",-40 - (height / 2))
+.text("Num of Earthquakes");
+
+svg3.append("text")
+.attr("transform", "translate(450,20)")
+.attr("y", -45)
+.attr("x",-40 - (height / 2))
+.text("Earthquake Statistics for 2000-2015 (Square root Scale)")
+.attr("font-size", "20px")
+.attr("font-weight", "1000");
+
+var lineLegend_2 = svg3.selectAll(".lineLegend_2").data("s")
+  .enter().append("g")
+  .attr("class","lineLegend_2")
+  .attr("transform", "translate(" + width + "," + 20+")");
+lineLegend_2.append("text").text("8.0+")
+  .attr("transform", "translate(15,9)"); //align texts with boxes
+lineLegend_2.append("rect")
+  .attr("fill", '#900C3F')
+  .attr("width", 10).attr("height", 10);
+var lineLegend_22 = svg3.selectAll(".lineLegend_22").data("d")
+  .enter().append("g")
+  .attr("class","lineLegend_22")
+  .attr("transform", "translate(" + width + "," + 40+")");
+lineLegend_22.append("text").text("7_7.9")
+  .attr("transform", "translate(15,9)"); //align texts with boxes
+lineLegend_22.append("rect")
+  .attr("fill", '#C70039')
+  .attr("width", 10).attr("height", 10);
+var lineLegend_23 = svg3.selectAll(".lineLegend_23").data("d")
+  .enter().append("g")
+  .attr("class","lineLegend_23")
+  .attr("transform", "translate(" + width + "," + 60+")");
+lineLegend_23.append("text").text("6_6.9")
+  .attr("transform", "translate(15,9)"); //align texts with boxes
+lineLegend_23.append("rect")
+  .attr("fill", '#FF5733')
+  .attr("width", 10).attr("height", 10);
+var lineLegend_24 = svg3.selectAll(".lineLegend_24").data("d")
+  .enter().append("g")
+  .attr("class","lineLegend_24")
+  .attr("transform", "translate(" + width + "," + 80+")");
+lineLegend_24.append("text").text("5_5.9")
+  .attr("transform", "translate(15,9)"); //align texts with boxes
+lineLegend_24.append("rect")
+  .attr("fill", '#FFC300')
+  .attr("width", 10).attr("height", 10);
+
+var Symbols_1 = d3.symbol()
+  .size(function(d) {return d.z/1500+30})
+  .type(d3.symbolSquare);
+
+var Symbols_2 = d3.symbol()
+  .size(function(d) {return d.z/1500+30})
+  .type(d3.symbolDiamond);
+
+var Symbols_3 = d3.symbol()
+  .size(function(d) {return d.z/1500+30})
+  .type(d3.symbolTriangle);
+
+var Symbols_4 = d3.symbol()
+  .size(function(d) {return d.z/1500+30})
+  .type(d3.symbolCircle);
+
+svg3.selectAll(".dot")
+        .data(d__eight)
+        .enter().append("path")
+        .attr("class", "point")
+        .attr("d",  Symbols_1)
+        .attr("fill", "#900C3F")
+        .attr("transform", function(d) { return "translate(" + xScale(d.x) + "," + yScale_Pow(d.y) + ")"; });
+svg3.selectAll(".dot")
+        .data(d__seven)
+        .enter().append("path")
+        .attr("class", "point")
+        .attr("d",  Symbols_2)
+        .attr("fill", "#C70039")
+        .attr("transform", function(d) { return "translate(" + xScale(d.x) + "," + yScale_Pow(d.y) + ")"; });
+svg3.selectAll(".dot")
+        .data(d__six)
+        .enter().append("path")
+        .attr("class", "point")
+        .attr("d", Symbols_3)
+        .attr("fill", "#FF5733")
+        .attr("transform", function(d) { return "translate(" + xScale(d.x) + "," + yScale_Pow(d.y) + ")"; });
+svg3.selectAll(".dot")
+        .data(d__five)
+        .enter().append("path")
+        .attr("class", "point")
+        .attr("d", Symbols_4)
+        .attr("fill", "#FFC300")
+        .attr("transform", function(d) { return "translate(" + xScale(d.x) + "," + yScale_Pow(d.y) + ")"; });
+
+////////////////////////
+////////////////////////
+//Chart 4
+
+var yScale_Log = d3.scaleLog()
+    .domain([0.1,max]) // input
+    .range([height, 0.1]); // output
+
+var line_log = d3.line()
+    .x(function(d) {return xScale(d.x); }) // set the x values for the line generator
+    .y(function(d) { return yScale_Log(d.y+0.1); }) // set the y values for the line generator
+    .curve(d3.curveMonotoneX); // apply smoothing to the line
+
+var svg4 = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+// 3. Call the x axis in a group tag
+svg4.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(d3.axisBottom(xScale)); // Create an axis component with d3.axisBottom
+
+// 4. Call the y axis in a group tag
+svg4.append("g")
+    .attr("class", "y axis")
+    .call(d3.axisLeft(yScale_Log)); // Create an axis component with d3.axisLeft
+
+// 9. Append the path, bind the data, and call the line generator
+
+svg4.append("path")
+    .datum(d__eight) // 10. Binds data to the line
+    .attr("stroke", '#900C3F')
+    .attr("class", "line") // Assign a class for styling
+    .attr("d", line_log); // 11. Calls the line generator
+svg4.append("path")
+    .datum(d__seven)
+    .attr("stroke", '#C70039')
+    .attr("class", "line") // Assign a class for styling
+    .attr("d", line_log);
+svg4.append("path")
+    .datum(d__six)
+    .attr("stroke", '#FF5733')
+    .attr("class", "line") // Assign a class for styling
+    .attr("d", line_log);
+svg4.append("path")
+    .datum(d__five)
+    .attr("stroke", '#FFC300')
+    .attr("class", "line") // Assign a class for styling
+    .attr("d", line_log);
+
+svg4.append("text")
+.attr("transform",
+          "translate(" + (width/2) + " ," +
+                         (height + 40) + ")")
+    .text("Year");
+svg4.append("text")
+.attr("transform", "rotate(-90)")
+.attr("y", -45)
+.attr("x",-40 - (height / 2))
+.text("Num of Earthquakes");
+
+svg4.append("text")
+.attr("transform", "translate(450,20)")
+.attr("y", -45)
+.attr("x",-40 - (height / 2))
+.text("Earthquake Statistics for 2000-2015 (Log Scale)")
+.attr("font-size", "20px")
+.attr("font-weight", "1000");
+
+var lineLegend_2 = svg4.selectAll(".lineLegend_2").data("s")
+  .enter().append("g")
+  .attr("class","lineLegend_2")
+  .attr("transform", "translate(" + width + "," + 20+")");
+lineLegend_2.append("text").text("8.0+")
+  .attr("transform", "translate(15,9)"); //align texts with boxes
+lineLegend_2.append("rect")
+  .attr("fill", '#900C3F')
+  .attr("width", 10).attr("height", 10);
+var lineLegend_22 = svg4.selectAll(".lineLegend_22").data("d")
+  .enter().append("g")
+  .attr("class","lineLegend_22")
+  .attr("transform", "translate(" + width + "," + 40+")");
+lineLegend_22.append("text").text("7_7.9")
+  .attr("transform", "translate(15,9)"); //align texts with boxes
+lineLegend_22.append("rect")
+  .attr("fill", '#C70039')
+  .attr("width", 10).attr("height", 10);
+var lineLegend_23 = svg4.selectAll(".lineLegend_23").data("d")
+  .enter().append("g")
+  .attr("class","lineLegend_23")
+  .attr("transform", "translate(" + width + "," + 60+")");
+lineLegend_23.append("text").text("6_6.9")
+  .attr("transform", "translate(15,9)"); //align texts with boxes
+lineLegend_23.append("rect")
+  .attr("fill", '#FF5733')
+  .attr("width", 10).attr("height", 10);
+var lineLegend_24 = svg4.selectAll(".lineLegend_24").data("d")
+  .enter().append("g")
+  .attr("class","lineLegend_24")
+  .attr("transform", "translate(" + width + "," + 80+")");
+lineLegend_24.append("text").text("5_5.9")
+  .attr("transform", "translate(15,9)"); //align texts with boxes
+lineLegend_24.append("rect")
+  .attr("fill", '#FFC300')
+  .attr("width", 10).attr("height", 10);
+
+var Symbols_1 = d3.symbol()
+  .size(function(d) {return d.z/1500+30})
+  .type(d3.symbolSquare);
+
+var Symbols_2 = d3.symbol()
+  .size(function(d) {return d.z/1500+30})
+  .type(d3.symbolDiamond);
+
+var Symbols_3 = d3.symbol()
+  .size(function(d) {return d.z/1500+30})
+  .type(d3.symbolTriangle);
+
+var Symbols_4 = d3.symbol()
+  .size(function(d) {return d.z/1500+30})
+  .type(d3.symbolCircle);
+
+svg4.selectAll(".dot")
+        .data(d__eight)
+        .enter().append("path")
+        .attr("class", "point")
+        .attr("d",  Symbols_1)
+        .attr("fill", "#900C3F")
+        .attr("transform", function(d) { return "translate(" + xScale(d.x) + "," + yScale_Log(d.y+0.1) + ")"; });
+svg4.selectAll(".dot")
+        .data(d__seven)
+        .enter().append("path")
+        .attr("class", "point")
+        .attr("d",  Symbols_2)
+        .attr("fill", "#C70039")
+        .attr("transform", function(d) { return "translate(" + xScale(d.x) + "," + yScale_Log(d.y) + ")"; });
+svg4.selectAll(".dot")
+        .data(d__six)
+        .enter().append("path")
+        .attr("class", "point")
+        .attr("d", Symbols_3)
+        .attr("fill", "#FF5733")
+        .attr("transform", function(d) { return "translate(" + xScale(d.x) + "," + yScale_Log(d.y) + ")"; });
+svg4.selectAll(".dot")
+        .data(d__five)
+        .enter().append("path")
+        .attr("class", "point")
+        .attr("d", Symbols_4)
+        .attr("fill", "#FFC300")
+        .attr("transform", function(d) { return "translate(" + xScale(d.x) + "," + yScale_Log(d.y) + ")"; });
+
+svg4.append("text")
+        .attr("transform", "translate(850,370)")
+        .attr("y", -45)
+        .attr("x",-40 - (height / 2))
+        .text("hcornwell3");
+
+
+})
+</script>
