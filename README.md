@@ -5,19 +5,19 @@ For the class Data Visualization, there was an assignment for D3 visualizations.
 
 Interactive graphs where nodes can be pinned and highlighted.
 
-![](Interactive-Graph0.PNG)
+![](Interactive-Graph0.png)
 
 
 Interactive line chart that shows a bar chart of the specific data point when the mouse hovers over.
 
-![](Interactive-Line-Chart-1.PNG)
+![](Interactive-Line-Chart-1.png)
 
 
 Interactive map on a color scale that changes by year through a slider at the bottom.
 
-![](Interactive-Map-1.PNG)
+![](Interactive-Map-1.png)
 
 
 Line chart with scaled markers based on the dataset.
 
-![](Line-Chart-2.PNG)
+![](Line-Chart-2.png)
